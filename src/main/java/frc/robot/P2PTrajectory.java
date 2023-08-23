@@ -1,6 +1,8 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 public class P2PTrajectory {
 
@@ -24,7 +26,7 @@ public class P2PTrajectory {
     private P2PWaypoint[] waypoints;
     private int waypointIndex;
 
-    public P2PTrajectory() {
+    public P2PTrajectory(P2PWaypoints[]wayPoints) {
 
     }
 
@@ -47,6 +49,11 @@ public class P2PTrajectory {
         if (index >= 0 && index < waypoints.length) {
             waypoints[index] = waypoint;
         }
+    }
+
+    public boolean isCurrentEndPoint(P2PTrajectory currentPose){
+      int last = waypoints.length-1;
+      return waypoints[last] == currentPose;
     }
 
 }
