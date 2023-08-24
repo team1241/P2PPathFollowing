@@ -1,11 +1,10 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import java.util.Arrays;
-import java.util.ArrayList;
 
 public class P2PTrajectory {
 
+    // waypoint class
     public class P2PWaypoint {
         private Pose2d pose;
         private double endRadius;
@@ -26,7 +25,7 @@ public class P2PTrajectory {
     private P2PWaypoint[] waypoints;
     private int waypointIndex;
 
-    public P2PTrajectory(P2PWaypoints[]wayPoints) {
+    public P2PTrajectory(P2PWaypoint[] wayPoints) {
 
     }
 
@@ -51,9 +50,8 @@ public class P2PTrajectory {
         }
     }
 
-    public boolean isCurrentEndPoint(P2PTrajectory currentPose){
-      int last = waypoints.length-1;
-      return waypoints[last] == currentPose;
+    public boolean isCurrentEndPoint() {
+        return waypointIndex == waypoints.length - 1;
     }
 
 }
