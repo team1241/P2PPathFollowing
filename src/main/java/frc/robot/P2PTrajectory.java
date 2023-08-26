@@ -57,7 +57,7 @@ public class P2PTrajectory {
         }
     }
 
-    public Pose2d getCurrentWayPoint(){
+    public P2PWaypoint getCurrentWayPoint(){
         return waypoints[waypointIndex];
     }
 

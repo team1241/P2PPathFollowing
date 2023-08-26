@@ -47,7 +47,7 @@ public class P2PPathController {
     }
 
     private double getDistanceToWaypoint(Pose2d currentPose) {
-        Pose2d waypoint = currentTrajectory.getWaypoint();
+        Pose2d waypoint = currentTrajectory.getCurrentWayPoint().getPose();
         double dx = waypoint.getX() - currentPose.getX();
         double dy = waypoint.getY() - currentPose.getY();
         return Math.sqrt(dx * dx + dy * dy);
