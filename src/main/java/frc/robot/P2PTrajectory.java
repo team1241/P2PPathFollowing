@@ -10,11 +10,18 @@ public class P2PTrajectory {
         private double endRadius;
 
         public P2PWaypoint() {
-
         }
 
         public void setEndRadius(double endRadius) {
             this.endRadius = endRadius;
+        }
+
+        public double getEndRadius(){
+            return endRadius;
+        }
+
+        public Pose2d getPose(){
+            return pose;
         }
 
         public void setPose(Pose2d pose) {
@@ -50,8 +57,13 @@ public class P2PTrajectory {
         }
     }
 
-    public boolean isCurrentEndPoint() {
+    public Pose2d getCurrentWayPoint(){
+        return waypoints[waypointIndex];
+    }
+
+    public boolean isEndPoint() {
         return waypointIndex == waypoints.length - 1;
     }
+
 
 }
