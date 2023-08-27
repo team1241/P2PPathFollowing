@@ -16,11 +16,11 @@ public class P2PTrajectory {
             this.endRadius = endRadius;
         }
 
-        public double getEndRadius(){
+        public double getEndRadius() {
             return endRadius;
         }
 
-        public Pose2d getPose(){
+        public Pose2d getPose() {
             return pose;
         }
 
@@ -32,10 +32,22 @@ public class P2PTrajectory {
     private P2PWaypoint[] waypoints;
     private int waypointIndex;
 
+    // constructor
     public P2PTrajectory(P2PWaypoint[] wayPoints) {
 
     }
 
+    public P2PWaypoint getCurrentWaypoint() {
+        return waypoints[waypointIndex];
+    }
+
+    public void nextWaypoint() {
+        if (waypointIndex + 1 < waypoints.length - 1) {
+            waypointIndex++;
+        }
+    }
+
+    // ************** Getters Setters **************
     public P2PWaypoint[] getWaypoints() {
         return waypoints;
     }
@@ -57,13 +69,8 @@ public class P2PTrajectory {
         }
     }
 
-    public P2PWaypoint getCurrentWayPoint(){
-        return waypoints[waypointIndex];
-    }
-
-    public boolean isEndPoint() {
+    public boolean isCurrentEndPoint() {
         return waypointIndex == waypoints.length - 1;
     }
-
 
 }
