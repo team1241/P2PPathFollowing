@@ -13,7 +13,9 @@ public class P2PPathController {
     private SlewRateLimiter vySlewLimiter;
     private SlewRateLimiter omegaSlewLimiter;
     public P2PTrajectory currentTrajectory;
+    public Pose2d currentPose;
 
+    // Constructor
     public P2PPathController(P2PTrajectory trajectory, double positionkP, double positionkI, double positionkD,
             double positionTolerance,
             double thetakP, double thetakI, double thetakD, double thetaTolerance, double slewRateVelocity,
@@ -35,17 +37,29 @@ public class P2PPathController {
     }
 
     // *************** Calculation Methods ***************
-    public ChassisSpeeds getGoalSpeeds(P2PTrajectory currentPose, double velocitySetpoint) {
-        if(currentPose.isCurrentEndPoint()){
-            
+
+    /**
+     * 
+     * @param currentPose current position of robot
+     * @param velocitySetpoint 
+     * @return chassis speeds to get to the waypoint
+     */
+    public ChassisSpeeds getGoalSpeeds(double velocitySetpoint) {
+        if(currentTrajectory.isCurrentEndPoint()){ 
+            return PoseToPoseControl();
         }
         else{
-            if(currentPose)
+            return VelocityHeadingControl(velocitySetpoint);
 
         }
     }
 
-    public ChassisSpeeds PoseToPoseControl(Pose2d currentPose) {
+    /**
+     * 
+     * @param currentPose
+     * @return chassis speeds using normal pose to pose method
+     */
+    public ChassisSpeeds PoseToPoseControl() {
         Pose2d targetPose = currentTrajectory.getCurrentWaypoint().getPose();
 
         double vx = vxSlewLimiter.calculate(pxController.calculate(currentPose.getX(), targetPose.getX()));
@@ -56,41 +70,77 @@ public class P2PPathController {
         return new ChassisSpeeds(vx, vy, omega);
     }
 
-    public ChassisSpeeds VelocityHeadingControl(P2PTrajectory currentPose, double velocitySetpoint) {
+    /**
+     * 
+     * @param currentPose
+     * @param velocitySetpoint
+     * @return chassis speeds using constant velocity
+     */
+    public ChassisSpeeds VelocityHeadingControl(double velocitySetpoint) {
+        if(currentTrajectory.inSetpointRadius()){
+            currentTrajectory.nextWaypoint();
+        }
+        else{
 
+        }
     }
 
     // *************** Util Methods ***************
-
-    private double getDistanceToWaypoint(Pose2d currentPose) {
+    /**
+     * 
+     * @param currentPose
+     * @return distance of robot to the next waypoint
+     */
+    private double getDistanceToWaypoint() {
         Pose2d waypoint = currentTrajectory.getCurrentWaypoint().getPose();
         double dx = waypoint.getX() - currentPose.getX();
         double dy = waypoint.getY() - currentPose.getY();
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    private double getAngleToWaypoint(Pose2d currentPose){
-        double targetAngle = currentTrajectory.getCurrentWaypoint().getPose().getRotation().getDegrees();
-        return 
+    public boolean inSetpointRadius(){
+        return getDistanceToWaypoint() < getEndRadius();
     }
 
-    private boolean inSetpointRadius(Pose2d currentPose) {
 
+
+    /**
+     * 
+     * @param currentPose
+     * @return angular velocity for robot to get to the next waypoint
+     */
+    private double getAngleToWaypoint(){
+        return 0.1;
     }
+
+
+
 
     // *************** Other Methods ***************
 
-    public boolean isSettled(Pose2d currentPose) {
+    /**
+     * 
+     * @param currentPose
+     * @return true when the pid is settled
+     */
+    public boolean isSettled() {
         return pxController.atSetpoint() && pyController.atSetpoint() && thetaController.atSetpoint()
                 && currentTrajectory.isCurrentEndPoint();
     }
 
+    /**
+     * 
+     * @param newTrajectory set current trajectory to the new one
+     */
     public void setTrajectory(P2PTrajectory newTrajectory) {
         this.currentTrajectory = newTrajectory;
     }
 
-    public void setPositionPID(double kP, double kI, double kD) {
+    // *************** Configs ***************
 
+    public void setPositionPID(double kP, double kI, double kD) {
+        pxController.setPID(kP, kI, kD);
+        pyController.setPID(kP, kI, kD);
     }
 
     public void setThetaPID(double kP, double kI, double kD) {
