@@ -4,6 +4,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import frc.robot.P2PTrajectory.P2PWaypoint;
 
 public class P2PPathController {
     private PIDController pxController; // posiiton x controller
@@ -77,12 +78,13 @@ public class P2PPathController {
      * @return chassis speeds using constant velocity
      */
     public ChassisSpeeds VelocityHeadingControl(double velocitySetpoint) {
-        if(currentTrajectory.inSetpointRadius()){
+        if(inSetpointRadius()){
             currentTrajectory.nextWaypoint();
         }
-        else{
+        
+        
 
-        }
+
     }
 
     // *************** Util Methods ***************
@@ -99,7 +101,7 @@ public class P2PPathController {
     }
 
     public boolean inSetpointRadius(){
-        return getDistanceToWaypoint() < getEndRadius();
+        return getDistanceToWaypoint() < currentTrajectory.getCurrentWaypoint().getEndRadius();
     }
 
 

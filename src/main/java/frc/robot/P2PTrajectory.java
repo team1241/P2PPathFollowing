@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.lang.reflect.Array;
+
 import edu.wpi.first.math.geometry.Pose2d;
 
 public class P2PTrajectory {
@@ -36,8 +38,8 @@ public class P2PTrajectory {
     private int waypointIndex;
 
     // constructor
-    public P2PTrajectory(P2PWaypoint[] wayPoints) {
-
+    public P2PTrajectory(P2PWaypoint[] wayPoints, int length) {
+        wayPoints = new P2PWaypoint[length];
     }
 
     /**
