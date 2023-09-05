@@ -42,16 +42,14 @@ public class P2PPathController {
     /**
      * 
      * @param currentPose current position of robot
-     * @param velocitySetpoint 
+     * @param velocitySetpoint
      * @return chassis speeds to get to the waypoint
      */
     public ChassisSpeeds getGoalSpeeds(double velocitySetpoint) {
-        if(currentTrajectory.isCurrentEndPoint()){ 
+        if (currentTrajectory.isCurrentEndPoint()) {
             return PoseToPoseControl();
-        }
-        else{
+        } else {
             return VelocityHeadingControl(velocitySetpoint);
-
         }
     }
 
@@ -78,13 +76,19 @@ public class P2PPathController {
      * @return chassis speeds using constant velocity
      */
     public ChassisSpeeds VelocityHeadingControl(double velocitySetpoint) {
-        if(inSetpointRadius()){
+        if (inSetpointRadius()) {
             currentTrajectory.nextWaypoint();
         }
-        
-        
 
+        Pose2d targetPose = currentTrajectory.getCurrentWaypoint().getPose();
+        double targetAngle = getAngleToWaypoint();
 
+        double vy = vySlewLimiter.calculate(velocitySetpoint * Math.sin(targetAngle));
+        double vx = vxSlewLimiter.calculate(velocitySetpoint * Math.cos(targetAngle));
+        double omega = omegaSlewLimiter.calculate(thetaController
+                .calculate(currentPose.getRotation().getRadians(), targetPose.getRotation().getRadians()));
+
+        return new ChassisSpeeds(vx, vy, omega);
     }
 
     // *************** Util Methods ***************
@@ -100,23 +104,38 @@ public class P2PPathController {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    public boolean inSetpointRadius(){
+    /**
+     * 
+     * @return true when the robot meets the end condition
+     */
+    public boolean inSetpointRadius() {
         return getDistanceToWaypoint() < currentTrajectory.getCurrentWaypoint().getEndRadius();
     }
-
-
 
     /**
      * 
      * @param currentPose
      * @return angular velocity for robot to get to the next waypoint
      */
-    private double getAngleToWaypoint(){
-        return 0.1;
+    private double getAngleToWaypoint() {
+        double targetPoseX = currentTrajectory.getCurrentWaypoint().getPose().getX();
+        double targetPoseY = currentTrajectory.getCurrentWaypoint().getPose().getY();
+        double currentPoseX = currentPose.getX();
+        double currentPoseY = currentPose.getY();
+
+        double yOverx = (targetPoseY - currentPoseY) / (targetPoseX - currentPoseX);
+        double angleToWaypoint;
+
+        if (targetPoseX >= currentPoseX) {
+            angleToWaypoint = Math.atan(yOverx);
+        } else if (targetPoseX < currentPoseX) {
+            angleToWaypoint = 180 * Math.signum(targetPoseY - currentPoseY) + Math.atan(yOverx);
+        } else {
+            angleToWaypoint = Math.signum(targetPoseY - currentPoseY) * 90;
+        }
+
+        return angleToWaypoint;
     }
-
-
-
 
     // *************** Other Methods ***************
 
