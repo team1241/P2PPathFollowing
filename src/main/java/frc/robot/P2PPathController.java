@@ -41,15 +41,16 @@ public class P2PPathController {
 
     /**
      * 
-     * @param currentPose current position of robot
-     * @param velocitySetpoint 
+     * @param currentPose      current position of robot
+     * @param velocitySetpoint
      * @return chassis speeds to get to the waypoint
      */
-    public ChassisSpeeds getGoalSpeeds(double velocitySetpoint) {
-        if(currentTrajectory.isCurrentEndPoint()){ 
+    public ChassisSpeeds getGoalSpeeds(Pose2d robotPose, double velocitySetpoint) {
+        this.currentPose = robotPose;
+        
+        if (currentTrajectory.isCurrentEndPoint()) {
             return PoseToPoseControl();
-        }
-        else{
+        } else {
             return VelocityHeadingControl(velocitySetpoint);
 
         }
@@ -78,12 +79,9 @@ public class P2PPathController {
      * @return chassis speeds using constant velocity
      */
     public ChassisSpeeds VelocityHeadingControl(double velocitySetpoint) {
-        if(inSetpointRadius()){
+        if (inSetpointRadius()) {
             currentTrajectory.nextWaypoint();
         }
-        
-        
-
 
     }
 
@@ -100,23 +98,18 @@ public class P2PPathController {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    public boolean inSetpointRadius(){
+    public boolean inSetpointRadius() {
         return getDistanceToWaypoint() < currentTrajectory.getCurrentWaypoint().getEndRadius();
     }
-
-
 
     /**
      * 
      * @param currentPose
      * @return angular velocity for robot to get to the next waypoint
      */
-    private double getAngleToWaypoint(){
+    private double getAngleToWaypoint() {
         return 0.1;
     }
-
-
-
 
     // *************** Other Methods ***************
 
