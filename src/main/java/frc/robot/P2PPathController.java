@@ -4,7 +4,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import frc.robot.P2PTrajectory.P2PWaypoint;
+
 
 public class P2PPathController {
     private PIDController pxController; // posiiton x controller
