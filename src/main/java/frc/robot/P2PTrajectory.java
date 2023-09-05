@@ -33,7 +33,6 @@ public class P2PTrajectory {
         
     }
     
-
     private P2PWaypoint[] waypoints;
     private int waypointIndex;
 
@@ -59,7 +58,7 @@ public class P2PTrajectory {
         }
     }
 
-    // ************** Getters Setters **************
+    // ************** Getters & Setters **************
     public P2PWaypoint[] getWaypoints() {
         return waypoints;
     }
