@@ -5,7 +5,6 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
-
 public class P2PPathController {
     private PIDController pxController; // posiiton x controller
     private PIDController pyController; // position y controller
@@ -14,9 +13,12 @@ public class P2PPathController {
     private SlewRateLimiter vySlewLimiter;
     private SlewRateLimiter omegaSlewLimiter;
     public P2PTrajectory currentTrajectory;
+    // TODO make a setter for current pose
     public Pose2d currentPose;
 
     // Constructor
+    // TODO since slew is the rate of change, the "slew" of veloctiy is actually
+    // acceleration
     public P2PPathController(P2PTrajectory trajectory, double positionkP, double positionkI, double positionkD,
             double positionTolerance,
             double thetakP, double thetakI, double thetakD, double thetaTolerance, double slewRateVelocity,
@@ -39,9 +41,15 @@ public class P2PPathController {
 
     // *************** Calculation Methods ***************
 
+    // TODO there should be a mechanism to reset the slew limiters and pids
+    // TODO you dont pass in the current pose, how does the controller update itself
+    // lol
+    // TODO either make a quick drive loop example in this project or document how a
+    // user is expected to use this class, its not obvious that all they need to do
+    // is constuct and call this method repeatedly
     /**
      * 
-     * @param currentPose current position of robot
+     * @param currentPose      current position of robot
      * @param velocitySetpoint
      * @return chassis speeds to get to the waypoint
      */
@@ -75,6 +83,7 @@ public class P2PPathController {
      * @param velocitySetpoint
      * @return chassis speeds using constant velocity
      */
+    // TODO dont forget to pass in and set current pose
     public ChassisSpeeds VelocityHeadingControl(double velocitySetpoint) {
         if (inSetpointRadius()) {
             currentTrajectory.nextWaypoint();
@@ -117,6 +126,8 @@ public class P2PPathController {
      * @param currentPose
      * @return angular velocity for robot to get to the next waypoint
      */
+    // TODO Math.atan2 is better suited here look at LocationConstants.java:343
+    // "getHeadingToPoint()" from last year's code
     private double getAngleToWaypoint() {
         double targetPoseX = currentTrajectory.getCurrentWaypoint().getPose().getX();
         double targetPoseY = currentTrajectory.getCurrentWaypoint().getPose().getY();
