@@ -4,6 +4,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 
 public class P2PPathController {
     private PIDController pxController; // posiiton x controller
@@ -13,7 +14,6 @@ public class P2PPathController {
     private SlewRateLimiter vySlewLimiter;
     private SlewRateLimiter omegaSlewLimiter;
     public P2PTrajectory currentTrajectory;
-    // TODO make a setter for current pose
     public Pose2d currentPose;
 
     // Constructor
@@ -41,7 +41,6 @@ public class P2PPathController {
 
     // *************** Calculation Methods ***************
 
-    // TODO there should be a mechanism to reset the slew limiters and pids
     // TODO you dont pass in the current pose, how does the controller update itself
     // lol
     // TODO either make a quick drive loop example in this project or document how a
@@ -57,7 +56,7 @@ public class P2PPathController {
         if (currentTrajectory.isCurrentEndPoint()) {
             return PoseToPoseControl();
         } else {
-            return VelocityHeadingControl(velocitySetpoint);
+            return VelocityHeadingControl(velocitySetpoint,currentPose);
         }
     }
 
@@ -84,7 +83,9 @@ public class P2PPathController {
      * @return chassis speeds using constant velocity
      */
     // TODO dont forget to pass in and set current pose
-    public ChassisSpeeds VelocityHeadingControl(double velocitySetpoint) {
+    public ChassisSpeeds VelocityHeadingControl(double velocitySetpoint, Pose2d currentPose) {
+        setCurrentPose(currentPose);
+        
         if (inSetpointRadius()) {
             currentTrajectory.nextWaypoint();
         }
@@ -123,27 +124,15 @@ public class P2PPathController {
 
     /**
      * 
-     * @param currentPose
      * @return angular velocity for robot to get to the next waypoint
      */
-    // TODO Math.atan2 is better suited here look at LocationConstants.java:343
-    // "getHeadingToPoint()" from last year's code
     private double getAngleToWaypoint() {
-        double targetPoseX = currentTrajectory.getCurrentWaypoint().getPose().getX();
-        double targetPoseY = currentTrajectory.getCurrentWaypoint().getPose().getY();
-        double currentPoseX = currentPose.getX();
-        double currentPoseY = currentPose.getY();
+        Pose2d targetPose = currentTrajectory.getCurrentWaypoint().getPose();
 
-        double yOverx = (targetPoseY - currentPoseY) / (targetPoseX - currentPoseX);
-        double angleToWaypoint;
+        double y = targetPose.getY() - currentPose.getY();
+        double x = targetPose.getX() - currentPose.getY();
 
-        if (targetPoseX >= currentPoseX) {
-            angleToWaypoint = Math.atan(yOverx);
-        } else if (targetPoseX < currentPoseX) {
-            angleToWaypoint = 180 * Math.signum(targetPoseY - currentPoseY) + Math.atan(yOverx);
-        } else {
-            angleToWaypoint = Math.signum(targetPoseY - currentPoseY) * 90;
-        }
+        double angleToWaypoint = Units.radiansToDegrees(Math.atan2(y,x));
 
         return angleToWaypoint;
     }
@@ -187,6 +176,35 @@ public class P2PPathController {
     public void setOmegaSlewRate(double rate) {
         vxSlewLimiter = new SlewRateLimiter(rate);
         vySlewLimiter = new SlewRateLimiter(rate);
+    }
+
+    // ********* Setters and Resetters  ************
+    private void setCurrentPose(Pose2d currentPose) {
+        this.currentPose = currentPose;
+    }
+
+    private void resetVxSlewRateLimiter() {
+        vxSlewLimiter.reset(0);
+    }
+
+    private void resetVySlewRateLimiter() {
+        vySlewLimiter.reset(0);
+    }
+
+    private void resetOmegaSlewRateLimiter() {
+        omegaSlewLimiter.reset(0);
+    }
+
+    private void resetPxController() {
+        pxController.reset();
+    }
+
+    private void resetPyController() {
+        pyController.reset();
+    }
+
+    private void resetThetaController() {
+        thetaController.reset();
     }
 
 }
