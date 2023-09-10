@@ -17,12 +17,10 @@ public class P2PPathController {
     public Pose2d currentPose;
 
     // Constructor
-    // TODO since slew is the rate of change, the "slew" of veloctiy is actually
-    // acceleration
     public P2PPathController(P2PTrajectory trajectory, double positionkP, double positionkI, double positionkD,
             double positionTolerance,
-            double thetakP, double thetakI, double thetakD, double thetaTolerance, double slewRateVelocity,
-            double slewRateOmega) {
+            double thetakP, double thetakI, double thetakD, double thetaTolerance, double slewRateTranslation,
+            double slewRateRotation) {
 
         pxController = new PIDController(positionkP, positionkI, positionkD);
         pxController.setTolerance(positionTolerance);
@@ -33,30 +31,29 @@ public class P2PPathController {
         thetaController = new PIDController(thetakP, thetakI, thetakD);
         thetaController.setTolerance(thetaTolerance);
 
-        vxSlewLimiter = new SlewRateLimiter(slewRateVelocity);
-        vySlewLimiter = new SlewRateLimiter(slewRateVelocity);
-        omegaSlewLimiter = new SlewRateLimiter(slewRateOmega);
+        vxSlewLimiter = new SlewRateLimiter(slewRateTranslation);
+        vySlewLimiter = new SlewRateLimiter(slewRateTranslation);
+        omegaSlewLimiter = new SlewRateLimiter(slewRateRotation);
 
     }
 
     // *************** Calculation Methods ***************
 
-    // TODO you dont pass in the current pose, how does the controller update itself
-    // lol
     // TODO either make a quick drive loop example in this project or document how a
     // user is expected to use this class, its not obvious that all they need to do
     // is constuct and call this method repeatedly
     /**
      * 
-     * @param currentPose      current position of robot
-     * @param velocitySetpoint
+     * @param currentPose      current position of robot (Pose2d)
+     * @param velocitySetpoint commanded velocity of robot (m/s)
      * @return chassis speeds to get to the waypoint
      */
-    public ChassisSpeeds getGoalSpeeds(double velocitySetpoint) {
+    public ChassisSpeeds getGoalSpeeds(Pose2d currentPose, double velocitySetpoint) {
+        setCurrentPose(currentPose);
         if (currentTrajectory.isCurrentEndPoint()) {
             return PoseToPoseControl();
         } else {
-            return VelocityHeadingControl(velocitySetpoint,currentPose);
+            return VelocityHeadingControl(velocitySetpoint);
         }
     }
 
@@ -65,7 +62,7 @@ public class P2PPathController {
      * @param currentPose
      * @return chassis speeds using normal pose to pose method
      */
-    public ChassisSpeeds PoseToPoseControl() {
+    private ChassisSpeeds PoseToPoseControl() {
         Pose2d targetPose = currentTrajectory.getCurrentWaypoint().getPose();
 
         double vx = vxSlewLimiter.calculate(pxController.calculate(currentPose.getX(), targetPose.getX()));
@@ -82,10 +79,7 @@ public class P2PPathController {
      * @param velocitySetpoint
      * @return chassis speeds using constant velocity
      */
-    // TODO dont forget to pass in and set current pose
-    public ChassisSpeeds VelocityHeadingControl(double velocitySetpoint, Pose2d currentPose) {
-        setCurrentPose(currentPose);
-        
+    private ChassisSpeeds VelocityHeadingControl(double velocitySetpoint) {
         if (inSetpointRadius()) {
             currentTrajectory.nextWaypoint();
         }
@@ -118,7 +112,7 @@ public class P2PPathController {
      * 
      * @return true when the robot meets the end condition
      */
-    public boolean inSetpointRadius() {
+    private boolean inSetpointRadius() {
         return getDistanceToWaypoint() < currentTrajectory.getCurrentWaypoint().getEndRadius();
     }
 
@@ -132,7 +126,7 @@ public class P2PPathController {
         double y = targetPose.getY() - currentPose.getY();
         double x = targetPose.getX() - currentPose.getY();
 
-        double angleToWaypoint = Units.radiansToDegrees(Math.atan2(y,x));
+        double angleToWaypoint = Units.radiansToDegrees(Math.atan2(y, x));
 
         return angleToWaypoint;
     }
@@ -178,33 +172,44 @@ public class P2PPathController {
         vySlewLimiter = new SlewRateLimiter(rate);
     }
 
-    // ********* Setters and Resetters  ************
+    // ********* Setters and Resetters ************
     private void setCurrentPose(Pose2d currentPose) {
         this.currentPose = currentPose;
     }
 
-    private void resetVxSlewRateLimiter() {
+    public void resetVxSlewRateLimiter() {
         vxSlewLimiter.reset(0);
     }
 
-    private void resetVySlewRateLimiter() {
+    public void resetVySlewRateLimiter() {
         vySlewLimiter.reset(0);
     }
 
-    private void resetOmegaSlewRateLimiter() {
+    public void resetOmegaSlewRateLimiter() {
         omegaSlewLimiter.reset(0);
     }
 
-    private void resetPxController() {
+    public void resetPxController() {
         pxController.reset();
     }
 
-    private void resetPyController() {
+    public void resetPyController() {
         pyController.reset();
     }
 
-    private void resetThetaController() {
+    public void resetThetaController() {
         thetaController.reset();
+    }
+
+    public void reset() {
+        resetOmegaSlewRateLimiter();
+        resetPxController();
+        resetPyController();
+        resetThetaController();
+        resetVxSlewRateLimiter();
+        resetVySlewRateLimiter();
+
+        currentTrajectory.reset();
     }
 
 }
