@@ -1,10 +1,14 @@
 package frc.robot;
 
+import org.opencv.core.Mat;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class P2PPathController {
     private PIDController pxController; // posiiton x controller
@@ -118,17 +122,16 @@ public class P2PPathController {
 
     /**
      * 
-     * @return angular velocity for robot to get to the next waypoint
+     * @return angular velocity for robot to get to the next waypoint in radians
      */
     private double getAngleToWaypoint() {
         Pose2d targetPose = currentTrajectory.getCurrentWaypoint().getPose();
+        Translation2d targetVector = targetPose.relativeTo(currentPose).getTranslation(); // get translation relative to current pose
+        double rad = Math.atan2(targetVector.getY(),targetVector.getX());
 
-        double y = targetPose.getY() - currentPose.getY();
-        double x = targetPose.getX() - currentPose.getY();
+        SmartDashboard.putNumber("target angle", Math.toDegrees(rad));
 
-        double angleToWaypoint = Units.radiansToDegrees(Math.atan2(y, x));
-
-        return angleToWaypoint;
+        return rad; 
     }
 
     // *************** Other Methods ***************
